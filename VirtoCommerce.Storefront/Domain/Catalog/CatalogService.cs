@@ -1,13 +1,10 @@
-using Microsoft.Extensions.Caching.Memory;
-using PagedList.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
+using PagedList.Core;
 using VirtoCommerce.Storefront.AutoRestClients.CatalogModuleApi;
-using VirtoCommerce.Storefront.Caching;
-using VirtoCommerce.Storefront.Extensions;
 using VirtoCommerce.Storefront.Infrastructure;
 using VirtoCommerce.Storefront.Model;
 using VirtoCommerce.Storefront.Model.Caching;
@@ -15,6 +12,8 @@ using VirtoCommerce.Storefront.Model.Catalog;
 using VirtoCommerce.Storefront.Model.Common;
 using VirtoCommerce.Storefront.Model.Common.Caching;
 using VirtoCommerce.Storefront.Model.Customer.Services;
+using VirtoCommerce.Storefront.Model.CustomerReviews;
+using VirtoCommerce.Storefront.Model.CustomerReviews.Services;
 using VirtoCommerce.Storefront.Model.Inventory.Services;
 using VirtoCommerce.Storefront.Model.Pricing.Services;
 using VirtoCommerce.Storefront.Model.Services;
@@ -32,6 +31,7 @@ namespace VirtoCommerce.Storefront.Domain
         private readonly IMemberService _customerService;
         private readonly ISubscriptionService _subscriptionService;
         private readonly IInventoryService _inventoryService;
+        private readonly ICustomerReviewSearchService _customerReviewService;
         private readonly IStorefrontMemoryCache _memoryCache;
         private readonly IApiChangesWatcher _apiChangesWatcher;
 
@@ -39,7 +39,7 @@ namespace VirtoCommerce.Storefront.Domain
             ICatalogModuleProducts productsApi,
             ICatalogModuleSearch searchApi, IPricingService pricingService, IMemberService customerService,
             ISubscriptionService subscriptionService,
-            IInventoryService inventoryService, IStorefrontMemoryCache memoryCache, IApiChangesWatcher changesWatcher)
+            IInventoryService inventoryService, ICustomerReviewSearchService customerReviewService, IStorefrontMemoryCache memoryCache, IApiChangesWatcher changesWatcher)
         {
             _workContextAccessor = workContextAccessor;
             _categoriesApi = categoriesApi;
@@ -50,6 +50,7 @@ namespace VirtoCommerce.Storefront.Domain
             _inventoryService = inventoryService;
             _customerService = customerService;
             _subscriptionService = subscriptionService;
+            _customerReviewService = customerReviewService;
             _memoryCache = memoryCache;
             _apiChangesWatcher = changesWatcher;
         }
@@ -105,6 +106,11 @@ namespace VirtoCommerce.Storefront.Domain
                     if (workContext.CurrentStore.SubscriptionEnabled && responseGroup.HasFlag(ItemResponseGroup.ItemWithPaymentPlan))
                     {
                         taskList.Add(LoadProductPaymentPlanAsync(allProducts, workContext));
+                    }
+
+                    if (workContext.CurrentStore.CustomerReviewsEnabled)
+                    {
+                        taskList.Add(LoadProductCustomerReviewsAsync(allProducts, workContext));
                     }
 
                     await Task.WhenAll(taskList.ToArray());
@@ -363,6 +369,34 @@ namespace VirtoCommerce.Storefront.Domain
                     return new StaticPagedList<ProductAssociation>(result, pageNumber, pageSize, searchResult.TotalCount ?? 0);
                 }, 1, ProductSearchCriteria.DefaultPageSize);
             }
+            return Task.CompletedTask;
+        }
+
+        protected virtual Task LoadProductCustomerReviewsAsync(List<Product> products, WorkContext workContext)
+        {
+            if (products == null)
+            {
+                throw new ArgumentNullException(nameof(products));
+            }
+
+            foreach (var product in products)
+            {
+                //Lazy loading for customer reviews
+                product.CustomerReviews = new MutablePagedList<CustomerReview>((pageNumber, pageSize, sortInfos) =>
+                {
+                    var criteria = new CustomerReviewSearchCriteria
+                    {
+                        ProductIds = new[] { product.Id },
+                        PageNumber = pageNumber,
+                        PageSize = pageSize,
+                        Sort = SortInfo.ToString(sortInfos)
+                    };
+
+                    return _customerReviewService.SearchCustomerReviews(criteria);
+
+                }, 1, CustomerReviewSearchCriteria.DefaultPageSize);
+            }
+
             return Task.CompletedTask;
         }
 
