@@ -17,6 +17,10 @@ namespace VirtoCommerce.LiquidThemeEngine.Objects
 
         public int DislikeCount { get; set; }
 
+        public long? CreatedDateTick => CreatedDate?.Ticks;
+
+        public string LocalizedCreatedDate => CreatedDate?.ToShortDateString();
+
         public DateTime? CreatedDate { get; set; }
     }
 }
