@@ -12,7 +12,7 @@ using API = VirtoCommerce.Storefront.AutoRestClients.CustomerReviewsModuleApi;
 
 namespace VirtoCommerce.Storefront.Domain.CustomerReviews
 {
-    public class CustomerReviewService : ICustomerReviewSearchService
+    public class CustomerReviewService : ICustomerReviewSearchService, ICustomerReviewService
     {
         private readonly API.ICustomerReviews _customerReviewApi;
         private readonly IStorefrontMemoryCache _memoryCache;
@@ -25,6 +25,86 @@ namespace VirtoCommerce.Storefront.Domain.CustomerReviews
             _memoryCache = memoryCache;
 
             _apiChangesWatcher = apiChangesWatcher;
+        }
+
+        public void AddDislikeToReview(string productId, string customerReviewId, string userId)
+        {
+            AddDislikeToReviewAsync(productId, customerReviewId, userId)
+                .GetAwaiter()
+                .GetResult();
+        }
+
+        public async Task AddDislikeToReviewAsync(string productId, string customerReviewId, string userId, CancellationToken token = default(CancellationToken))
+        {
+            await _customerReviewApi.DislikeWithHttpMessagesAsync(
+                new API.Models.CustomerReviewAppraisalModel
+                {
+                    Appraisal = 1,
+                    ReviewId = customerReviewId,
+                    UserId = userId
+                },
+                cancellationToken: token);
+
+            CustomerReviewCacheRegion.ExpireCustomerCustomerReview(productId);
+        }
+
+        public void AddLikeToReview(string productId, string customerReviewId, string userId)
+        {
+            AddLikeToReviewAsync(productId, customerReviewId, userId)
+                .GetAwaiter()
+                .GetResult();
+        }
+
+        public async Task AddLikeToReviewAsync(string productId, string customerReviewId, string userId, CancellationToken token = default(CancellationToken))
+        {
+            await _customerReviewApi.LikeWithHttpMessagesAsync(
+                new API.Models.CustomerReviewAppraisalModel
+                {
+                    Appraisal = 1,
+                    ReviewId = customerReviewId,
+                    UserId = userId
+                },
+                cancellationToken: token);
+
+            CustomerReviewCacheRegion.ExpireCustomerCustomerReview(productId);
+        }
+
+        public void CreateReview(CustomerReviewCreateModel newCustomerReview)
+        {
+            CreateReviewAsync(newCustomerReview)
+                .GetAwaiter()
+                .GetResult();
+        }
+
+        public async Task CreateReviewAsync(CustomerReviewCreateModel newCustomerReview, CancellationToken token = default(CancellationToken))
+        {
+            await _customerReviewApi.UpdateWithHttpMessagesAsync(
+                new[] { newCustomerReview.ToCustomerReview() },
+                cancellationToken: token);
+
+            CustomerReviewCacheRegion.ExpireCustomerCustomerReview(newCustomerReview.ProductId);
+        }
+
+        public double? GetProductRating(string productId)
+        {
+            return GetProductRatingAsync(productId)
+                .GetAwaiter()
+                .GetResult();
+        }
+
+        public async Task<double?> GetProductRatingAsync(string productId, CancellationToken token = default(CancellationToken))
+        {
+            var cacheKey = CacheKey.With(typeof(CustomerReviewService), nameof(GetProductRatingAsync), productId);
+
+            return await _memoryCache.GetOrCreateExclusiveAsync(cacheKey, async (cacheEntry) =>
+            {
+                cacheEntry.AddExpirationToken(CustomerReviewCacheRegion.CreateChangeToken());
+                cacheEntry.AddExpirationToken(_apiChangesWatcher.CreateChangeToken());
+
+                var result = await _customerReviewApi.GetProductRatingWithHttpMessagesAsync(productId, cancellationToken: token);
+
+                return result.Body.Rating;
+            });
         }
 
         public IPagedList<CustomerReview> SearchCustomerReviews(CustomerReviewSearchCriteria criteria)

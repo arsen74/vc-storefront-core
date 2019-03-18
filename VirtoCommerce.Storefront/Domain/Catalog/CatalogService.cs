@@ -31,7 +31,8 @@ namespace VirtoCommerce.Storefront.Domain
         private readonly IMemberService _customerService;
         private readonly ISubscriptionService _subscriptionService;
         private readonly IInventoryService _inventoryService;
-        private readonly ICustomerReviewSearchService _customerReviewService;
+        private readonly ICustomerReviewSearchService _customerReviewSearchService;
+        private readonly ICustomerReviewService _customerReviewService;
         private readonly IStorefrontMemoryCache _memoryCache;
         private readonly IApiChangesWatcher _apiChangesWatcher;
 
@@ -39,7 +40,8 @@ namespace VirtoCommerce.Storefront.Domain
             ICatalogModuleProducts productsApi,
             ICatalogModuleSearch searchApi, IPricingService pricingService, IMemberService customerService,
             ISubscriptionService subscriptionService,
-            IInventoryService inventoryService, ICustomerReviewSearchService customerReviewService, IStorefrontMemoryCache memoryCache, IApiChangesWatcher changesWatcher)
+            IInventoryService inventoryService, ICustomerReviewSearchService customerReviewSearchService, ICustomerReviewService customerReviewService,
+            IStorefrontMemoryCache memoryCache, IApiChangesWatcher changesWatcher)
         {
             _workContextAccessor = workContextAccessor;
             _categoriesApi = categoriesApi;
@@ -50,6 +52,7 @@ namespace VirtoCommerce.Storefront.Domain
             _inventoryService = inventoryService;
             _customerService = customerService;
             _subscriptionService = subscriptionService;
+            _customerReviewSearchService = customerReviewSearchService;
             _customerReviewService = customerReviewService;
             _memoryCache = memoryCache;
             _apiChangesWatcher = changesWatcher;
@@ -111,6 +114,7 @@ namespace VirtoCommerce.Storefront.Domain
                     if (workContext.CurrentStore.CustomerReviewsEnabled)
                     {
                         taskList.Add(LoadProductCustomerReviewsAsync(allProducts, workContext));
+                        taskList.Add(LoadProductRatingAsync(allProducts, workContext));
                     }
 
                     await Task.WhenAll(taskList.ToArray());
@@ -392,12 +396,25 @@ namespace VirtoCommerce.Storefront.Domain
                         Sort = SortInfo.ToString(sortInfos)
                     };
 
-                    return _customerReviewService.SearchCustomerReviews(criteria);
+                    return _customerReviewSearchService.SearchCustomerReviews(criteria);
 
                 }, 1, CustomerReviewSearchCriteria.DefaultPageSize);
             }
 
             return Task.CompletedTask;
+        }
+
+        protected virtual async Task LoadProductRatingAsync(List<Product> products, WorkContext workContext)
+        {
+            if (products == null)
+            {
+                throw new ArgumentNullException(nameof(products));
+            }
+
+            foreach (var product in products)
+            {
+                product.ReviewsRating = await _customerReviewService.GetProductRatingAsync(product.Id);
+            }
         }
 
         protected virtual void EstablishLazyDependenciesForCategories(IEnumerable<Category> categories)

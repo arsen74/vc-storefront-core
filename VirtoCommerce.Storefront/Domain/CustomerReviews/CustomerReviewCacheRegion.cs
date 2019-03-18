@@ -8,23 +8,23 @@ namespace VirtoCommerce.Storefront.Domain.CustomerReviews
 {
     public class CustomerReviewCacheRegion : CancellableCacheRegion<CustomerReviewCacheRegion>
     {
-        private static readonly ConcurrentDictionary<string, CancellationTokenSource> _customerCustomerReviewRegionTokenLookup = new ConcurrentDictionary<string, CancellationTokenSource>();
+        private static readonly ConcurrentDictionary<string, CancellationTokenSource> _customerReviewRegionTokenLookup = new ConcurrentDictionary<string, CancellationTokenSource>();
 
-        public static IChangeToken CreateCustomerCustomerReviewChangeToken(string customerId)
+        public static IChangeToken CreateCustomerCustomerReviewChangeToken(string productId)
         {
-            if (customerId == null)
+            if (productId == null)
             {
-                throw new ArgumentNullException(nameof(customerId));
+                throw new ArgumentNullException(nameof(productId));
             }
 
-            var cancellationTokenSource = _customerCustomerReviewRegionTokenLookup.GetOrAdd(customerId, new CancellationTokenSource());
+            var cancellationTokenSource = _customerReviewRegionTokenLookup.GetOrAdd(productId, new CancellationTokenSource());
 
             return new CompositeChangeToken(new[] { CreateChangeToken(), new CancellationChangeToken(cancellationTokenSource.Token) });
         }
 
-        public static void ExpireCustomerCustomerReview(string customerId)
+        public static void ExpireCustomerCustomerReview(string productId)
         {
-            if (!string.IsNullOrEmpty(customerId) && _customerCustomerReviewRegionTokenLookup.TryRemove(customerId, out var token))
+            if (!string.IsNullOrEmpty(productId) && _customerReviewRegionTokenLookup.TryRemove(productId, out var token))
             {
                 token.Cancel();
             }

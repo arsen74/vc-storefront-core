@@ -219,6 +219,8 @@ namespace VirtoCommerce.Storefront.Model.Catalog
         /// </summary>
         public IList<EditorialReview> Descriptions { get; set; }
 
+        public double? ReviewsRating { get; set; }
+
         public IMutablePagedList<CustomerReview> CustomerReviews { get; set; }
 
         /// <summary>

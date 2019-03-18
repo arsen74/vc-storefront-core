@@ -3,7 +3,7 @@ namespace VirtoCommerce.Storefront.Domain.CustomerReviews
 {
     public static class CustomerReviewConverter
     {
-        public static Model.CustomerReviews.CustomerReview ToCustomerReview(this AutoRestClients.CustomerReviewsModuleApi.CustomerReview itemDto)
+        public static Model.CustomerReviews.CustomerReview ToCustomerReview(this AutoRestClients.CustomerReviewsModuleApi.Models.CustomerReview itemDto)
         {
             return new Model.CustomerReviews.CustomerReview
             {
@@ -18,14 +18,26 @@ namespace VirtoCommerce.Storefront.Domain.CustomerReviews
                 ModifiedBy = itemDto.ModifiedBy,
                 ModifiedDate = itemDto.ModifiedDate,
                 ProductId = itemDto.ProductId,
-                Rating = itemDto.Rating.GetValueOrDefault(),
-                ReviewPhotoPath = itemDto.ReviewPhotoPath
+                Rating = itemDto.Rating.GetValueOrDefault()
             };
         }
 
-        public static AutoRestClients.CustomerReviewsModuleApi.CustomerReviewSearchCriteria ToSearchCriteriaDto(this Model.CustomerReviews.CustomerReviewSearchCriteria searchCriteria)
+        public static AutoRestClients.CustomerReviewsModuleApi.Models.CustomerReview ToCustomerReview(this Model.CustomerReviews.CustomerReviewCreateModel model)
         {
-            return new AutoRestClients.CustomerReviewsModuleApi.CustomerReviewSearchCriteria
+            return new AutoRestClients.CustomerReviewsModuleApi.Models.CustomerReview
+            {
+                AuthorNickname = model.AuthorNickname,
+                Content = model.Content,
+                CreatedBy = model.CreatedBy,
+                CreatedDate = model.CreatedDate,
+                ProductId = model.ProductId,
+                Rating = model.Rating
+            };
+        }
+
+        public static AutoRestClients.CustomerReviewsModuleApi.Models.CustomerReviewSearchCriteria ToSearchCriteriaDto(this Model.CustomerReviews.CustomerReviewSearchCriteria searchCriteria)
+        {
+            return new AutoRestClients.CustomerReviewsModuleApi.Models.CustomerReviewSearchCriteria
             {
                 IsActive = searchCriteria.IsActive,
                 ProductIds = searchCriteria.ProductIds,
