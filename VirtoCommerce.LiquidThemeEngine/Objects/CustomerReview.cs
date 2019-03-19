@@ -13,6 +13,8 @@ namespace VirtoCommerce.LiquidThemeEngine.Objects
 
         public int Rating { get; set; }
 
+        public double RatingPercentage => (Rating / 5d) * 100;
+
         public int LikeCount { get; set; }
 
         public int DislikeCount { get; set; }

@@ -153,6 +153,8 @@ namespace VirtoCommerce.LiquidThemeEngine.Converters
             if (product.CustomerReviews != null)
             {
                 result.CustomerReviews = product.CustomerReviews.Select(x => x.ToShopifyModel()).ToArray();
+
+                result.Rating = product.ReviewsRating.GetValueOrDefault();
             }
 
             return result;

@@ -257,11 +257,15 @@ namespace VirtoCommerce.LiquidThemeEngine.Objects
         [DataMember]
         public CustomerReview[] CustomerReviews { get; set; }
 
+        [DataMember]
+        public double Rating { get; set; }
+
+        public double ReviewsRatingPercentage => (Rating / 5d) * 100;
+
         /// <summary>
         /// Gets or sets the collection of related products
         /// </summary>
         public IMutablePagedList<Product> RelatedProducts { get; set; }
-
 
         /// <summary>
         /// Weight unit (for physical product only)
