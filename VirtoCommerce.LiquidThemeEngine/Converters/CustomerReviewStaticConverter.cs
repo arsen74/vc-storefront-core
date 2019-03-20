@@ -17,6 +17,7 @@ namespace VirtoCommerce.LiquidThemeEngine.Converters
         {
             return new CustomerReview
             {
+                Id = item.Id,
                 AuthorNickname = item.AuthorNickname,
                 Content = item.Content,
                 CreatedDate = item.CreatedDate,

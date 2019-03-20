@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -78,6 +79,8 @@ namespace VirtoCommerce.Storefront.Domain.CustomerReviews
 
         public async Task CreateReviewAsync(CustomerReviewCreateModel newCustomerReview, CancellationToken token = default(CancellationToken))
         {
+            newCustomerReview.CreatedDate = DateTimeOffset.UtcNow.DateTime;
+
             await _customerReviewApi.UpdateWithHttpMessagesAsync(
                 new[] { newCustomerReview.ToCustomerReview() },
                 cancellationToken: token);
@@ -98,7 +101,7 @@ namespace VirtoCommerce.Storefront.Domain.CustomerReviews
 
             return await _memoryCache.GetOrCreateExclusiveAsync(cacheKey, async (cacheEntry) =>
             {
-                cacheEntry.AddExpirationToken(CustomerReviewCacheRegion.CreateChangeToken());
+                cacheEntry.AddExpirationToken(CustomerReviewCacheRegion.CreateCustomerCustomerReviewChangeToken(productId));
                 cacheEntry.AddExpirationToken(_apiChangesWatcher.CreateChangeToken());
 
                 var result = await _customerReviewApi.GetProductRatingWithHttpMessagesAsync(productId, cancellationToken: token);
@@ -120,7 +123,10 @@ namespace VirtoCommerce.Storefront.Domain.CustomerReviews
 
             return await _memoryCache.GetOrCreateExclusiveAsync(cacheKey, async (cacheEntry) =>
             {
-                cacheEntry.AddExpirationToken(CustomerReviewCacheRegion.CreateChangeToken());
+                for (int i = 0; i < criteria.ProductIds.Length; i++)
+                {
+                    cacheEntry.AddExpirationToken(CustomerReviewCacheRegion.CreateCustomerCustomerReviewChangeToken(criteria.ProductIds[i]));
+                }
                 cacheEntry.AddExpirationToken(_apiChangesWatcher.CreateChangeToken());
 
                 var result = await _customerReviewApi.SearchCustomerReviewsWithHttpMessagesAsync(criteria.ToSearchCriteriaDto(), cancellationToken: token);

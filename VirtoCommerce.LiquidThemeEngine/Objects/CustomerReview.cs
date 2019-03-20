@@ -5,6 +5,8 @@ namespace VirtoCommerce.LiquidThemeEngine.Objects
 {
     public class CustomerReview : Drop
     {
+        public string Id { get; set; }
+
         public string AuthorNickname { get; set; }
 
         public string Content { get; set; }

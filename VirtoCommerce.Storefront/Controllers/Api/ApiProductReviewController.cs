@@ -21,8 +21,6 @@ namespace VirtoCommerce.Storefront.Controllers
         [HttpPost("product/{productId}/review")]
         public ActionResult CreateCustomerReview([FromRoute] string productId, [FromBody] CustomerReviewCreateModel customerReviewCreateModel)
         {
-            customerReviewCreateModel.ProductId = productId;
-
             _customerReviewService.CreateReview(customerReviewCreateModel);
 
             return NoContent();

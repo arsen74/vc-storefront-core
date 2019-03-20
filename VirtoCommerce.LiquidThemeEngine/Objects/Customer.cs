@@ -1,9 +1,7 @@
-using DotLiquid;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using VirtoCommerce.Storefront.Model;
+using DotLiquid;
 using VirtoCommerce.Storefront.Model.Common;
-using PagedList;
 
 namespace VirtoCommerce.LiquidThemeEngine.Objects
 {
