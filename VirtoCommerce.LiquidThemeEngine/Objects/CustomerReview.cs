@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using DotLiquid;
 
 namespace VirtoCommerce.LiquidThemeEngine.Objects
@@ -15,7 +16,7 @@ namespace VirtoCommerce.LiquidThemeEngine.Objects
 
         public int Rating { get; set; }
 
-        public double RatingPercentage => (Rating / 5d) * 100;
+        public string RatingPercentage => ((Rating / 5d) * 100).ToString(CultureInfo.InvariantCulture);
 
         public int LikeCount { get; set; }
 

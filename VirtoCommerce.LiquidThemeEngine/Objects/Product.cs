@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Runtime.Serialization;
 using DotLiquid;
 using VirtoCommerce.Storefront.Model.Common;
@@ -260,7 +261,7 @@ namespace VirtoCommerce.LiquidThemeEngine.Objects
         [DataMember]
         public double Rating { get; set; }
 
-        public double ReviewsRatingPercentage => (Rating / 5d) * 100;
+        public string ReviewsRatingPercentage => ((Rating / 5d) * 100).ToString(CultureInfo.InvariantCulture);
 
         /// <summary>
         /// Gets or sets the collection of related products
