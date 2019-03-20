@@ -393,7 +393,8 @@ namespace VirtoCommerce.Storefront.Domain
                         ProductIds = new[] { product.Id },
                         PageNumber = pageNumber,
                         PageSize = pageSize,
-                        Sort = SortInfo.ToString(sortInfos)
+                        Sort = SortInfo.ToString(sortInfos),
+                        IsActive = true
                     };
 
                     return _customerReviewSearchService.SearchCustomerReviews(criteria);
